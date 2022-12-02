@@ -18,13 +18,3 @@ A graphical user interface "SuperLWPC" is very useful to: save time, accuracy an
 6. Change the values of 𝛥𝐴 and 𝛥𝜙 depending on what you have on the VLF signal.
 7. Press the Generate results button to start the simulation.
 8. If you did not get the correct values, change one or more parameters from step #5 again.
-### Applicaion : SID due to a X6.9 flare on the NRK-Algeria path (Y. Bouderba 2016)
-
-The generated outputs give the set of deviations between measurements and calculations for a set of tests. The figure below shows the outputs obtained with the ℎ′ values on the x-axis and the 𝛽 values tested on the y-axis.
-
-![MainWindow_Result](assets/MainWindow_Result.PNG)
-
-![ContourPlot](assets/ContourPlot.PNG)
-
-![Simulation](assets/Simulation.PNG)
-
