@@ -1,4 +1,6 @@
 # SuperLWPC
+[![DOI](https://zenodo.org/badge/573601658.svg)](https://zenodo.org/badge/latestdoi/573601658)
+
 ## Description
 The LWPCv21 code is a set of programs that can be used according to the user's needs. The determination of the coefficients *H'* and *𝛽* is done interactively during which we seek to minimize the deviation between the measured ELF/VLF/LF signal perturbations and the introduced model. This procedure is very time-consuming and tedious to perform because the LWPC code as is requires running multiple executables with each adjustment made and at the end of each iteration. For this reason, we decided to develop a SuperLWPC interfaced application that allows to run a set of tests in an interactive and autonomous way. This application was developed using the Python programming language.
 
