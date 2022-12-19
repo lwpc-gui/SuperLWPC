@@ -6,8 +6,6 @@ authors:
   orcid: "https://orcid.org/0000-0001-9938-5059"
 - family-names: "Ghalila"
   given-names: "Hassen"
-- family-names: "Nait Amor"
-  given-names: "Samir"
 title: "SuperLWPC"
 version: 1.0.2
 doi: 10.5281/zenodo.7459708 
