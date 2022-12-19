@@ -1,0 +1,15 @@
+cff-version: 1.0.2
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Ammar"
+  given-names: "Ahmed"
+  orcid: "https://orcid.org/0000-0001-9938-5059"
+- family-names: "Ghalila"
+  given-names: "Hassen"
+- family-names: "Nait Amor"
+  given-names: "Samir"
+title: "SuperLWPC"
+version: 1.0.2
+doi: 10.5281/zenodo.7459708 
+date-released: 2022-12-19
+url: "https://github.com/lwpc-gui/SuperLWPC"
