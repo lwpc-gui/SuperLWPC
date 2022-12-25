@@ -1,0 +1,9 @@
+case-id     OMEGA-A coverage of the N_Pac
+tx          gcpath
+tx-data    OMEGA-A
+ionosphere  lwpm day
+range-max 3296.0
+receivers    36.8 -10.22
+gcpath
+start
+quit

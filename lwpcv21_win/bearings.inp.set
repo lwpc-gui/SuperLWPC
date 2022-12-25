@@ -1,0 +1,13 @@
+file-mds    Output/
+file-lwf    Output/
+case-id     TBB coverage of the Mediterranean
+tx          bearings
+tx-data    TBB
+ionosphere  lwpm day
+range-max 5836.0
+bearings 72.4
+print-swg 2
+lwf-vs-dist 5836.0
+print-lwf 2
+start
+quit

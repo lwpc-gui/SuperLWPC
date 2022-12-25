@@ -1,0 +1,15 @@
+file-mds    Output/ 
+file-lwf    Output/ 
+file-prf    Profile/ 
+file-ndx    Profile/ 
+case-id     TBB coverage of the Mediterranean
+tx          rexp
+tx-data    TBB
+ionosphere  range exponential rexp
+range-max 1510.0
+rexp 272.7
+print-swg   2
+lwf-vs-dist 1510.0
+print-lwf   2
+start
+quit

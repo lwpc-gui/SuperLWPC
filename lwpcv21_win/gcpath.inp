@@ -1,0 +1,9 @@
+case-id     NAA coverage of the Atlantic
+tx          gcpath
+tx-data    NAA
+ionosphere  lwpm day
+range-max 5836.0
+receivers    36.76 -3.47
+gcpath
+start
+quit

@@ -34,7 +34,13 @@ class SuperLWPC(QMainWindow, Ui_MainApp):
         #self.Maillor()
         # Input gen window
         self.input_gen= InputGenerator(self)
-        print("**************\nLSAMA VLF team\nSuper LWPC\n**************\n")
+        self.__version__ = "1.0.2"
+        print('''
+              *********************************************************
+              VLF modelling and simulation software
+              SuperLWPC v{}
+              please report bugs to ahmed.ammar@fst.utm.tn
+              *********************************************************'''.format(self.__version__))
         
     def Maillor(self):
         '''
@@ -60,33 +66,30 @@ class SuperLWPC(QMainWindow, Ui_MainApp):
         hprime = df_gcpathAmb['hprime']
         hprime =np.array(hprime, dtype = np.float64)
         beta = df_gcpathAmb['beta']
-        
-        beta =np.array(beta, dtype = np.float64)
         # np.save("init_grid_data.npy", np.array([rho, hprime, beta]))
         # rho, hprime, beta = np.load("init_grid_data.npy")
-        f = interpolate.interp1d(rho, hprime)
-        g = interpolate.interp1d(rho, beta)
-        self.newrho = np.arange(0, max(rho), 20)
-        newhprime = f(self.newrho)
-        newbeta = g(self.newrho)
+        self.newrho = np.arange(0, max(rho), self.spinBox_Step.value()) 
+        self.newhprime = np.ones(len(self.newrho))*self.spinBox_HpAmb.value()
+        self.newbeta = np.ones(len(self.newrho))*self.spinBox_BetaAmb.value()
+        #distance to receiver
+        self.textDist.setText("{}/{} Distance = {} Mm".format(TxID, RxID,self.newrho[-1]/1000))
         plt1 = self.mpl1.canvas
         plt2 = self.mpl2.canvas
         plt1.ax.clear(); plt2.ax.clear() #clear on plot()
         plt1.ax.plot(rho/1000, hprime, "bo")
-        plt1.ax.plot(self.newrho/1000, newhprime, "-b")
+        plt1.ax.plot(self.newrho/1000, self.newhprime, "-b")
         plt2.ax.plot(rho/1000, beta, "bo")
-        plt2.ax.plot(self.newrho/1000, newbeta, "-b")
+        plt2.ax.plot(self.newrho/1000, self.newbeta, "-b")
 #         perturbation grid
-        self.HPmatrix = np.zeros((len(newhprime), NLines+1))
-        #hmodel = np.ones(len(newhprime))
+        self.HPmatrix = np.zeros((len(self.newhprime), NLines+1))
         try:
             j=0
             for k in np.linspace(1E-8,dHp,NLines, endpoint = True):
-                for i in range(len(newhprime)):
-                    if 72<= newhprime[i] <= 76:
-                        self.HPmatrix[i,j]= newhprime[i] + k
+                for i in range(len(self.newhprime)):
+                    if 72<= self.newhprime[i] <= 76:
+                        self.HPmatrix[i,j]= self.newhprime[i] + k
                     else:
-                        self.HPmatrix[i,j]= newhprime[i]
+                        self.HPmatrix[i,j]= self.newhprime[i]
     
                 plt1.ax.plot(self.newrho/1000, self.HPmatrix[:,j], "r--", ms=1, alpha = 1)
                 j+=1
@@ -105,15 +108,15 @@ class SuperLWPC(QMainWindow, Ui_MainApp):
         plt1.ax.get_figure().tight_layout(pad=0.7, h_pad=None, rect=(None,0.11, None, 0.895)) # fill space
         plt1.draw() # required to update the window
             
-        self.BETAmatrix = np.zeros((len(newbeta), NLines+1))
+        self.BETAmatrix = np.zeros((len(self.newbeta), NLines+1))
         try:
             j = 0
             for k in np.linspace(1E-8, dBeta,NLines, endpoint = True):
-                for i in range(len(newbeta)):
-                    if 0.29 <= newbeta[i] <= 0.32:
-                        self.BETAmatrix[i,j]= newbeta[i] + k
+                for i in range(len(self.newbeta)):
+                    if 0.29 <= self.newbeta[i] <= 0.32:
+                        self.BETAmatrix[i,j]= self.newbeta[i] + k
                     else:
-                        self.BETAmatrix[i,j] = newbeta[i]
+                        self.BETAmatrix[i,j] = self.newbeta[i]
                 plt2.ax.plot(self.newrho/1000, self.BETAmatrix[:,j], "r--", ms=1, alpha = 1)
                 j+=1
         except OSError as e:
@@ -146,10 +149,51 @@ class SuperLWPC(QMainWindow, Ui_MainApp):
         area = datastore["area"]
         bearing = datastore["bearing"]
         ionosphere = datastore["ionosphere"]
-        
-        # load ambient profile from bearing
-        df_bearings_path_info , df_ambient = dl.bearingsLoader(pathname= pathname)
-        ampQ, phiQ = df_ambient[:,1][-1], df_ambient[:,2][-1]
+        range_max = self.newrho[-1]
+        # # load ambient profile from bearing
+        # df_bearings_path_info , df_ambient = dl.bearingsLoader(pathname= pathname)
+        # ampQ, phiQ = df_ambient[:,1][-1], df_ambient[:,2][-1]
+        ## load ambient from rexp
+        Hpamb,Betaamb = self.newhprime, self.newbeta
+        np.savetxt("Profile/rexp.ndx", np.c_[self.newrho, Betaamb, Hpamb],
+                   header=" rho  beta  hprime",comments='; ', fmt='%.4f', delimiter='  ')
+        with open("rexp.inp", 'w+') as f:
+            f.write('file-mds    Output/ \n')
+            f.write('file-lwf    Output/ \n')
+            f.write('file-prf    Profile/ \n')
+            f.write('file-ndx    Profile/ \n')
+            f.write('case-id     %s coverage of the %s\n'%(tx,area))
+            f.write('tx          rexp\n')
+            f.write('tx-data    %s\n'%tx)
+            f.write('ionosphere  %s rexp\n'% ionosphere)
+            f.write('range-max %s\n'%str(range_max))
+            f.write('rexp %s\n'% str(bearing))
+            f.write('print-swg   2\n')
+            f.write('lwf-vs-dist %s\n'%str(range_max))
+            f.write('print-lwf   2\n')
+            f.write('start\n')
+            f.write('quit')
+        #f.close()
+        #execute LWPC
+        myOS = platform.system()
+        if myOS == 'Windows':
+            subprocess.call(["lwpm.exe","rexp"],  shell=True)
+            os.remove("Output/rexp.mds")
+        else:
+            try:
+                os.remove("Output/rexp.mds")
+            except:
+                pass
+            os.system('./LWPC rexp')
+            os.remove("Output/rexp.mds")
+            
+        df_disturb = dl.rexpLoader(pathname= pathname)
+        self.distAmbient = df_disturb[:-1,0]
+        self.ampAmbient = df_disturb[:-1,1]
+        self.phiAmbient = df_disturb[:-1,2]
+        ampQ= df_disturb[:-1,1][-1]
+        phiQ = df_disturb[:-1,2][-1]
+        #-------------------
         DeltaA=self.doubleSpinBox_dA.value() #Perturbed Amplitude from the recorded signal
         DeltaPhi=self.doubleSpinBox_dPhi.value() #Perturbed Phase from the recorded signal
         Err_amp_min=float(self.lineEdit_errdA.text())
@@ -163,7 +207,6 @@ class SuperLWPC(QMainWindow, Ui_MainApp):
         N = self.spinBox_NLines.value()
         Err_Amp = np.zeros((N, N))
         Err_Phi = np.zeros((N, N))
-        range_max = self.newrho[-1]
         self.progressBar.setMinimum(0)
         self.progressBar.setMaximum(N-1)
         self.progressBar_2.setMinimum(0)
@@ -309,6 +352,24 @@ class SuperLWPC(QMainWindow, Ui_MainApp):
         #plt.savefig('..\\program\\tmp.pdf');  plt.savefig('..\\program\\tmp.png')
         plt.tight_layout()
         plt.show()
+    @pyqtSlot(int)
+    def on_spinBox_BetaAmb_valueChanged(self, p0):
+        """
+        Change beta ambient
+        """
+        self.Maillor()
+    @pyqtSlot(int)
+    def on_spinBox_HpAmb_valueChanged(self, p0):
+        """
+        Change hp ambient
+        """
+        self.Maillor()
+    @pyqtSlot(int)
+    def on_spinBox_Step_valueChanged(self, p0):
+        """
+        Change step of discret gcp path
+        """
+        self.Maillor()
     
     @pyqtSlot(int)
     def on_spinBox_NLines_valueChanged(self, p0):
@@ -360,17 +421,17 @@ class SuperLWPC(QMainWindow, Ui_MainApp):
         Slot documentation goes here.
         """
         try:
-            df_bearings_path_info , df_ambient = dl.bearingsLoader(pathname = pathname)
+            #df_bearings_path_info , df_ambient = dl.bearingsLoader(pathname = pathname)
             df_disturb = dl.rexpLoader(pathname = pathname)
             
             fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True,figsize=(8,5))
             plt.suptitle(f"Variation of signal amplitude and phase along the {TxID}-{RxID} propagation path",
                          fontweight = "bold")
-            ax1.plot(df_ambient[:,0], df_ambient[:,1], "b-", lw = 2, label = "Ambiant amplitude")
+            ax1.plot(self.distAmbient,self.ampAmbient, "b-", lw = 2, label = "Ambient amplitude")
             ax1.plot(df_disturb[:-1,0], df_disturb[:-1,1], "r-", lw = 2, label = "Perturbed amplitude")
             ax1.set_ylabel("Amplitude")
             ax1.legend()
-            ax2.plot(df_ambient[:,0], df_ambient[:,2], "b-", lw = 2, label = "Ambiant phase")
+            ax2.plot(self.distAmbient,self.phiAmbient, "b-", lw = 2, label = "Ambient phase")
             ax2.plot(df_disturb[:-1,0], df_disturb[:-1,2], "r-", lw = 2, label = "perturbed phase")
             ax2.set_xlabel("rho [km]")
             ax2.set_ylabel("Phase")
@@ -386,13 +447,13 @@ class SuperLWPC(QMainWindow, Ui_MainApp):
         """
         Slot documentation goes here.
         """
-        QMessageBox.about(self,"SuperLWPC",
+        QMessageBox.about(self,"SuperLWPC v{}".format(self.__version__),
         """
         
         This application is an interface for LWPC program. It is a tool for finding Wait' parameters.
         
-        Author: Ahmed AMMAR and Hassen Ghalila \n
-        Email: ammarahmed.ph@gmail.com, hassen.ghalila@gmail.com \n
+        Author: Ahmed AMMAR, Hassen Ghalila and Samir Naitamor \n
+        Email: ahmed.ammar@fst.utm.tn, hassen.ghalila@gmail.com, snaitamor@yahoo.com \n
         
         """)
      # CONFIG - MB   

@@ -1,0 +1,17 @@
+file-mds    Output\
+file-lwf    Output\
+file-grd    Output\
+case-id  wwll_21.417_-158.150 
+tx  wwll_21.417_-158.150 
+tx-data WWLL 21.400 21.417 158.150 500.000 0 0 0.000 WWLL 
+rx-data vertical 0.000000 
+ionosphere Homogeneous Exponential 0.41 85 
+receivers -45.866 170.513 
+lwf-vs-dist 9103.009 910.201 
+range-max 9103.009 
+segment 100 
+print-lwf 1 
+start 
+gcpath 
+start 
+quit 

@@ -1,0 +1,13 @@
+file-mds    Output/
+file-lwf    Output/
+case-id     OMEGA-A coverage of the N_Pac
+tx          bearings
+tx-data    OMEGA-A
+ionosphere  lwpm day
+range-max 3296.0
+bearings 184.7
+print-swg 2
+lwf-vs-dist 3296.0
+print-lwf 2
+start
+quit

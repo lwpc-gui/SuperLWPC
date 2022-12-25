@@ -1,0 +1,15 @@
+file-mds    Output/ 
+file-lwf    Output/ 
+file-prf    Profile/ 
+file-ndx    Profile/ 
+case-id     NAA coverage of the Atlantic
+tx          rexp
+tx-data    NAA
+ionosphere  range exponential rexp
+range-max 5830.0
+rexp 72.4
+print-swg   2
+lwf-vs-dist 5830.0
+print-lwf   2
+start
+quit

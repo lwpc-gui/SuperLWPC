@@ -1,0 +1,43 @@
+#
+# make file for test program 
+#       Recuperer du document 'Help_lwpc_linux' sur le net
+#
+TMPDIR   = .
+WHICHF   = gfortran 
+$(TMPDIR)/mytest:  ;\
+#  
+	$(WHICHF) -c -w -fdollar-ok -fno-automatic -fno-range-check *.for
+	ar r lwpc.a *.o
+	mv lwpc.a ..
+#-------------------------------------------------------
+# Second, build the LWPC program,
+#-------------------------------------------------------
+	cd .. ;\
+	gfortran -w -fno-automatic lwpm.for lwpc.a -o LWPC
+#-------------------------------------------------------
+#  Next, have to build and run some programs which 
+#  initialise things like coastline data, etc.
+#-------------------------------------------------------
+	cd ../data ;\
+	$(WHICHF) -fdollar-ok unf_coas.for -o unf_coas ;\
+	$(WHICHF) -fdollar-ok unf_cond.for -o unf_cond ;\
+	$(WHICHF) -fdollar-ok unf_itsn.for -o unf_itsn ;\
+	$(WHICHF) -fdollar-ok unf_ntia.for -o unf_ntia ;\
+	./unf_cond ;\
+	./unf_coas ;\
+	./unf_itsn ;\
+	./unf_ntia ;\
+	rm unf_cond ;\
+	rm unf_coas ;\
+	rm unf_itsn ;\
+	rm unf_ntia
+#-------------------------------------------------------
+#    Finally, one important file is:
+#           lwpcDAT.loc in which you indicate the Path
+#    and you also needs to move:
+#           xmtr.lis
+#-------------------------------------------------------
+	cd .. ;\
+	echo "`pwd`/data/" > lwpcDAT.loc ;\
+	cp save/xmtr.lis data/.
+
