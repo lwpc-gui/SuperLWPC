@@ -2,14 +2,14 @@ file-mds    Output/
 file-lwf    Output/ 
 file-prf    Profile/ 
 file-ndx    Profile/ 
-case-id     NAA coverage of the Atlantic
+case-id     NRK coverage of the Mediterranean
 tx          rexp
-tx-data    NAA
+tx-data    NRK
 ionosphere  range exponential rexp
-range-max 5830.0
-rexp 72.4
+range-max 3712.0
+bearing 128.3
 print-swg   2
-lwf-vs-dist 5830.0
+lwf-vs-dist 3712.0
 print-lwf   2
 start
 quit

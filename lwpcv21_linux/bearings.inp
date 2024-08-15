@@ -1,13 +1,13 @@
 file-mds    Output/
 file-lwf    Output/
-case-id     OMEGA-A coverage of the N_Pac
+case-id     NRK coverage of the Mediterranean
 tx          bearings
-tx-data    OMEGA-A
+tx-data    NRK
 ionosphere  lwpm day
-range-max 3296.0
-bearings 184.7
+range-max 3712.0
+bearings 128.3
 print-swg 2
-lwf-vs-dist 3296.0
+lwf-vs-dist 3712.0
 print-lwf 2
 start
 quit

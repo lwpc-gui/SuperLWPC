@@ -1,9 +1,9 @@
-case-id     NAA coverage of the Atlantic
+case-id     NRK coverage of the Mediterranean
 tx          gcpath
-tx-data    NAA
+tx-data    NRK
 ionosphere  lwpm day
-range-max 5836.0
-receivers    36.76 -3.47
+range-max 3712.0
+receivers    36.8 -10.22
 gcpath
 start
 quit

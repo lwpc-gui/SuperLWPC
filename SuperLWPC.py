@@ -34,7 +34,7 @@ class SuperLWPC(QMainWindow, Ui_MainApp):
         #self.Maillor()
         # Input gen window
         self.input_gen= InputGenerator(self)
-        self.__version__ = "1.0.2"
+        self.__version__ = "1.0.4"
         print('''
               *********************************************************
               VLF modelling and simulation software
@@ -58,27 +58,21 @@ class SuperLWPC(QMainWindow, Ui_MainApp):
         pathname = datastore["pathname"]
         TxID = datastore["TxID"]
         RxID = datastore["RxID"]
-        
-        # Load path info from gcpath.log
-        df_gcpath, df_gcpathAmb = dl.gcpathLoader(pathname = pathname)
-        rho = df_gcpathAmb['rho']
-        rho = np.array(rho, dtype = np.float64)
-        hprime = df_gcpathAmb['hprime']
-        hprime =np.array(hprime, dtype = np.float64)
-        beta = df_gcpathAmb['beta']
-        # np.save("init_grid_data.npy", np.array([rho, hprime, beta]))
-        # rho, hprime, beta = np.load("init_grid_data.npy")
-        self.newrho = np.arange(0, max(rho), self.spinBox_Step.value()) 
+        Range_max = datastore["range_max"]
+
+        self.newrho = np.arange(0, float(Range_max), self.spinBox_Step.value()) 
         self.newhprime = np.ones(len(self.newrho))*self.spinBox_HpAmb.value()
         self.newbeta = np.ones(len(self.newrho))*self.spinBox_BetaAmb.value()
+        # save ambient config
+        np.save(path+"/config/init_grid_data.npy", np.array([self.newrho, self.newhprime, self.newbeta]))
         #distance to receiver
-        self.textDist.setText("{}/{} Distance = {} Mm".format(TxID, RxID,self.newrho[-1]/1000))
+        self.textDist.setText("{}/{} Distance = {} Mm".format(TxID, RxID,float(Range_max)/1000))
         plt1 = self.mpl1.canvas
         plt2 = self.mpl2.canvas
         plt1.ax.clear(); plt2.ax.clear() #clear on plot()
-        plt1.ax.plot(rho/1000, hprime, "bo")
+        #plt1.ax.plot(rho/1000, hprime, "bo")
         plt1.ax.plot(self.newrho/1000, self.newhprime, "-b")
-        plt2.ax.plot(rho/1000, beta, "bo")
+        #plt2.ax.plot(rho/1000, beta, "bo")
         plt2.ax.plot(self.newrho/1000, self.newbeta, "-b")
 #         perturbation grid
         self.HPmatrix = np.zeros((len(self.newhprime), NLines+1))
@@ -86,10 +80,7 @@ class SuperLWPC(QMainWindow, Ui_MainApp):
             j=0
             for k in np.linspace(1E-8,dHp,NLines, endpoint = True):
                 for i in range(len(self.newhprime)):
-                    if 72<= self.newhprime[i] <= 76:
-                        self.HPmatrix[i,j]= self.newhprime[i] + k
-                    else:
-                        self.HPmatrix[i,j]= self.newhprime[i]
+                    self.HPmatrix[i,j]= self.newhprime[i] + k
     
                 plt1.ax.plot(self.newrho/1000, self.HPmatrix[:,j], "r--", ms=1, alpha = 1)
                 j+=1
@@ -113,10 +104,7 @@ class SuperLWPC(QMainWindow, Ui_MainApp):
             j = 0
             for k in np.linspace(1E-8, dBeta,NLines, endpoint = True):
                 for i in range(len(self.newbeta)):
-                    if 0.29 <= self.newbeta[i] <= 0.32:
-                        self.BETAmatrix[i,j]= self.newbeta[i] + k
-                    else:
-                        self.BETAmatrix[i,j] = self.newbeta[i]
+                    self.BETAmatrix[i,j]= self.newbeta[i] + k
                 plt2.ax.plot(self.newrho/1000, self.BETAmatrix[:,j], "r--", ms=1, alpha = 1)
                 j+=1
         except OSError as e:
@@ -149,7 +137,7 @@ class SuperLWPC(QMainWindow, Ui_MainApp):
         area = datastore["area"]
         bearing = datastore["bearing"]
         ionosphere = datastore["ionosphere"]
-        range_max = self.newrho[-1]
+        range_max = float(datastore["range_max"])
         # # load ambient profile from bearing
         # df_bearings_path_info , df_ambient = dl.bearingsLoader(pathname= pathname)
         # ampQ, phiQ = df_ambient[:,1][-1], df_ambient[:,2][-1]
@@ -167,7 +155,7 @@ class SuperLWPC(QMainWindow, Ui_MainApp):
             f.write('tx-data    %s\n'%tx)
             f.write('ionosphere  %s rexp\n'% ionosphere)
             f.write('range-max %s\n'%str(range_max))
-            f.write('rexp %s\n'% str(bearing))
+            f.write('bearing %s\n'% str(bearing))
             f.write('print-swg   2\n')
             f.write('lwf-vs-dist %s\n'%str(range_max))
             f.write('print-lwf   2\n')
@@ -187,7 +175,7 @@ class SuperLWPC(QMainWindow, Ui_MainApp):
             os.system('./LWPC rexp')
             os.remove("Output/rexp.mds")
             
-        df_disturb = dl.rexpLoader(pathname= pathname)
+        df_rexp_path_info,df_disturb = dl.rexpLoader(pathname= pathname)
         self.distAmbient = df_disturb[:-1,0]
         self.ampAmbient = df_disturb[:-1,1]
         self.phiAmbient = df_disturb[:-1,2]
@@ -226,7 +214,7 @@ class SuperLWPC(QMainWindow, Ui_MainApp):
                     f.write('tx-data    %s\n'%tx)
                     f.write('ionosphere  %s rexp\n'% ionosphere)
                     f.write('range-max %s\n'%str(range_max))
-                    f.write('rexp %s\n'% str(bearing))
+                    f.write('bearing %s\n'% str(bearing))
                     f.write('print-swg   2\n')
                     f.write('lwf-vs-dist %s\n'%str(range_max))
                     f.write('print-lwf   2\n')
@@ -246,7 +234,7 @@ class SuperLWPC(QMainWindow, Ui_MainApp):
                     os.system('./LWPC rexp')
                     os.remove("Output/rexp.mds")
                     
-                df_disturb = dl.rexpLoader(pathname= pathname)
+                df_rexp_path_info,df_disturb = dl.rexpLoader(pathname= pathname)
                 amplitude_rexp = df_disturb[:-1,1][-1]
                 phase_rexp = df_disturb[:-1,2][-1]
                 DAmp_rexp = amplitude_rexp - ampQ
@@ -281,22 +269,22 @@ class SuperLWPC(QMainWindow, Ui_MainApp):
 #        # PLOT FIGURS OF ERRORS ON PHASE AND AMPLITUDE
         dHp=self.dHp.value()
         dBeta=self.dBeta.value()
-        x=np.linspace(74, 74+dHp, N)
-        y=np.linspace(0.3, 0.3 + dBeta, N)
+        x=np.linspace(Hpamb[0], Hpamb[0]+dHp, N)
+        y=np.linspace(Betaamb[0], Betaamb[0] + dBeta, N)
         xi, yi = np.meshgrid(x, y) #Order is very important
         plt.figure(figsize=(8,6))
         plt.subplot(2,1,1)
-        # levels=np.arange(0.,1,0.1)
-        # cs1=plt.contour(xi,yi,Err_ampD2,levels,linewidths=2.5,
-        #                 cmap="plasma",alpha=.8)
+        levels=np.linspace(0.,1.,4)
+        cs1=plt.contour(xi,yi,Err_Amp,levels,cmap="Greys")
         # plt.colorbar(cs1, extend='both')
         # plt.clabel(cs1, levels[1::2],  # label every second level
         #            inline=1,
         #            fmt='%1.1f', fontsize=14)
-        im1=plt.contourf(xi,yi,Err_Amp,cmap="plasma",
-                          origin='lower',alpha=.6, levels = 15)
+        im1=plt.contourf(xi,yi,Err_Amp,levels=np.linspace(0, 10, 21),
+                         cmap="gnuplot", origin='lower')
         CBI1 = plt.colorbar(im1, shrink=0.8)
         CBI1.set_label(r'$err \Delta A$ [dB]')
+        CBI1.add_lines(cs1)
         ## SHOW X, Y, Z VALUES ON TOP RIGHT CORNER
         ## REF : https://stackoverflow.com/questions/10081100/matplotlib-contourf-get-z-value-under-cursor
         Xflata, Yflata, Zflata = xi.flatten(), yi.flatten(), Err_Amp.flatten()
@@ -315,22 +303,22 @@ class SuperLWPC(QMainWindow, Ui_MainApp):
             plt.legend()
         # plt.title('Error on Amplitude')
         # plt.grid()
-        plt.xlabel("H [km]")
+        plt.xlabel("h' [km]")
         plt.ylabel(r"$\beta \ [km^{-1}]$")
         
         
         plt.subplot(2,1,2)
-        # levels=np.arange(0.,10.,1.5)
-        # cs2=plt.contour(xi,yi,Err_phiD2,levels,linewidths=2.5,
-        #                 cmap="plasma",alpha=.8)
+        levels=np.linspace(0.,8.,4)
+        cs2=plt.contour(xi,yi,Err_Phi,levels,cmap="Greys")
         # plt.colorbar(cs2, extend='both')
         # plt.clabel(cs2, levels[1::2],  # label every second level
         #            inline=1,
         #            fmt='%1.f', fontsize=14)
-        im2=plt.contourf(xi,yi,Err_Phi,cmap="plasma",
-                          origin='lower',alpha=.6, levels = 15)
+        im2=plt.contourf(xi,yi,Err_Phi,levels=np.linspace(0, 90, 21),
+                         cmap="gnuplot", origin='lower')
         CBI2 = plt.colorbar(im2, shrink=0.8)
         CBI2.set_label(r'$err \Delta \phi$ [°]')
+        CBI2.add_lines(cs2)
         Xflatp, Yflatp, Zflatp = xi.flatten(), yi.flatten(), Err_Phi.flatten()
         def fmt2(x, y):
             # get closest point with known data
@@ -346,7 +334,7 @@ class SuperLWPC(QMainWindow, Ui_MainApp):
             plt.axvline(x = Sol_Hp,color ="k", linewidth=1, ls="--")
             plt.legend()
         
-        plt.xlabel("H [km]") 
+        plt.xlabel("h' [km]") 
         plt.ylabel(r"$\beta \ [km^{-1}]$")
         # plt.grid()
         #plt.savefig('..\\program\\tmp.pdf');  plt.savefig('..\\program\\tmp.png')
@@ -422,7 +410,7 @@ class SuperLWPC(QMainWindow, Ui_MainApp):
         """
         try:
             #df_bearings_path_info , df_ambient = dl.bearingsLoader(pathname = pathname)
-            df_disturb = dl.rexpLoader(pathname = pathname)
+            df_rexp_path_info,df_disturb = dl.rexpLoader(pathname = pathname)
             
             fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True,figsize=(8,5))
             plt.suptitle(f"Variation of signal amplitude and phase along the {TxID}-{RxID} propagation path",

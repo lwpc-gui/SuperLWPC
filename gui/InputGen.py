@@ -6,6 +6,7 @@ import Data_Loader as dl
 from datetime import datetime
 import locale
 import json
+import numpy as np
 class InputGenerator(QMainWindow, Ui_InputGen):
 
     def __init__(self, parent=None):
@@ -151,7 +152,55 @@ class InputGenerator(QMainWindow, Ui_InputGen):
                 pass
             os.system('./LWPC bearings')
             os.remove("Output/bearings.mds")
-            
+    
+    def MakeRexpInputfile(self):
+        """
+        Create rexp.log
+        """
+        df_gcpath, df_gcpathAmb = dl.gcpathLoader(pathname= self.path)
+        self.bearing, self.range_max = df_gcpath["bearing"], df_gcpath["rrho"]
+        df_rx = dl.rxLoader(pathname= self.path)
+        self.tx=self.cb_tx.currentText()
+        self.rx=self.cb_rx.currentText()
+        for i in range(len(df_rx)):
+            if self.rx == df_rx["rx_id"][i]:
+                self.lat_rx = df_rx["lat"][i]
+                self.lon_rx= df_rx ["lon"][i]
+
+        # Date Time Setting (Radio button state condition)
+        if self.rb_bearings_DayNight.isChecked():
+            self.dt_bearings = self.cb_bearings_DayNight.currentText()
+        elif self.rb_bearings_DateTime.isChecked():
+            dt= self.dt_bearings_DateTime.dateTime()
+            dt= dt.toPyDateTime()
+            self.dt_bearings = dt.strftime("%b/%d/%y %H:%M") 
+        
+        with open("bearings.inp", 'w+') as f:
+            f.write('file-mds    Output/\n')
+            f.write('file-lwf    Output/\n')
+            f.write('case-id     %s coverage of the %s\n'%(self.tx,self.cb_bearings_area.currentText()))
+            f.write('tx          bearings\n')
+            f.write('tx-data    %s\n'%self.tx)
+            f.write('ionosphere  %s %s\n'%(self.cb_bearings_ionosphere.currentText(), self.dt_bearings))
+            f.write('range-max %s\n'%str(self.range_max_bearings.value()))
+            f.write('bearings %s\n'% str(float(self.bearing)))
+            f.write('print-swg 2\n')
+            f.write('lwf-vs-dist %s\n'%str(self.range_max_bearings.value()))
+            f.write('print-lwf 2\n')
+            f.write('start\n')
+            f.write('quit')
+        #f.close()
+        myOS = platform.system()
+        if myOS == 'Windows':
+            subprocess.call(["lwpm.exe","bearings"],  shell=True)
+            os.remove("Output/bearings.mds")
+        else:
+            try:
+                os.remove("Output/bearings.mds")
+            except:
+                pass
+            os.system('./LWPC bearings')
+            os.remove("Output/bearings.mds")
         
     def configDataBase(self):
         """
@@ -161,6 +210,7 @@ class InputGenerator(QMainWindow, Ui_InputGen):
         
         #path = self.init_directory # /home/ahmed/Documents/SuperLWPC/source/gui/
         path = self.init_directory
+        rho, hprime, beta = np.load(path+"/config/init_grid_data.npy")
         with open(path+'/config/dbconfig.json', 'w') as outfile:
             json.dump({
                 "pathname": self.lineEdit_path.text(),
@@ -168,7 +218,11 @@ class InputGenerator(QMainWindow, Ui_InputGen):
                 "RxID": self.cb_rx.currentText(),
                 "area" : self.cb_gcp_area.currentText(),
                 "bearing" : self.label_bearings.text(),
-                "ionosphere" : "range exponential"
+                "ionosphere" : "range exponential",
+                "rho_amb" : str(rho),
+                "hprime_amb" : str(hprime),
+                "beta_amb" : str(beta),
+                "range_max" : str(self.range_max_bearings.value())
                 
                 }, outfile)
         

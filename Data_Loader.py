@@ -82,11 +82,12 @@ def rexpLoader(pathname, filename="/rexp.log"):
     """
     Load rexp data from rexp.log
     """
-#    df_rexp_path_info = pandas.read_table(pathname+filename, skiprows=23, delim_whitespace=True,
-#                                  names=("nr", "rho", "lat", "lon", "azim",
-#                                         "dip", "sigma", "chi", "beta", "h'"))
-#    endIdx = df_rexp_path_info[df_rexp_path_info["nr"]== 'PRFL_HGTS:'].index
-#    df_rexp_path_info = df_rexp_path_info[0:endIdx[0]]
+    df_rexp_path_info = pandas.read_table(pathname+filename, skiprows=23, delim_whitespace=True,
+                                  names=("nr", "rho", "lat", "lon", "azim",
+                                        "dip", "sigma", "chi", "beta", "h'"))
+    endIdx = df_rexp_path_info[df_rexp_path_info["nr"]== 'PRFL_HGTS:'].index
+    df_rexp_path_info = df_rexp_path_info[0:endIdx[0]]
+    #print(df_rexp_path_info["rho"])
     # Find signal prop: dist, Amp, Phase
     with open(pathname+filename) as f:
         content = f.readlines()
@@ -105,76 +106,70 @@ def rexpLoader(pathname, filename="/rexp.log"):
     df_disturb = np.vstack((np.array(df1, dtype = np.float64),
                             np.array(df2, dtype = np.float64),
                             np.array(df3, dtype = np.float64)))
-    return df_disturb
+    return df_rexp_path_info, df_disturb
 
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
     from scipy import interpolate
-    df_gcpath, df_gcpathAmb = gcpathLoader(pathname= "../lwpcv21")
+    df_gcpath, df_gcpathAmb = gcpathLoader(pathname= "lwpcv21_linux")
     bearing, range_max = df_gcpath["bearing"], df_gcpath["rrho"]
     print("bearing = ", float(bearing), "range max = ", float(range_max))
-    print("beta amb = ", df_gcpathAmb['beta'][0])
-    print("hprime amb = ", df_gcpathAmb['hprime'][0])
     ## FIGURE
-    rho = df_gcpathAmb['rho']
+    df_rexp_path_info, df_disturb = rexpLoader(pathname= "lwpcv21_linux")
+    rho = df_rexp_path_info['rho']
     rho = np.array(rho, dtype = np.float64)
-    hprime = df_gcpathAmb['hprime']
+    hprime = df_rexp_path_info["h'"]
     hprime =np.array(hprime, dtype = np.float64)
-    beta = df_gcpathAmb['beta']
+    beta = df_rexp_path_info['beta']
     beta =np.array(beta, dtype = np.float64)
-    f = interpolate.interp1d(rho, hprime)
-    g = interpolate.interp1d(rho, beta)
-    newrho = np.arange(0, max(rho), 20)
-    newhprime = f(newrho)
-    newbeta = g(newrho)
-    
+    print("beta amb = ", hprime[0])
+    print("hprime amb = ",beta[0])
     fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True,figsize=(8,5))
-    ax1.plot(rho/1000, hprime, "ro")
-    ax1.plot(newrho/1000, newhprime, "-r")
+    ax1.plot(rho/1000, hprime, "r-o")
+
     ax1.set_title("H' new stratified maillor")
     ax1.set_xlabel("rho (Mm)")
     ax1.set_ylabel("h' (km)")
-    ax2.plot(rho/1000, beta, "ro")
-    ax2.plot(newrho/1000, newbeta, "r-")
+    ax2.plot(rho/1000, beta, "r-o")
     ax2.set_title("Beta new stratified maillor")
     ax2.set_xlabel("rho (Mm)")
     ax2.set_ylabel("Beta' (km^-1)")
     
     
     # perturbation grid
-    hmodel = np.ones(len(newhprime))
-    for k in np.arange(0,10,10/10):
-        for i in range(len(newhprime)):
-            if 72<= newhprime[i] <= 76:
-                hmodel[i]= newhprime[i]-k
+    hmodel = np.ones(len(hprime))
+    for k in np.arange(0,10,1):
+        for i in range(len(hprime)):
+            if 50<= hprime[i] <= 76:
+                hmodel[i]= hprime[i]-k
             else:
-                hmodel[i]= newhprime[i]
-        ax1.plot(newrho/1000, hmodel, "bo-", ms=2, alpha = 0.5)
+                hmodel[i]= hprime[i]
+        ax1.plot(rho/1000, hmodel, "bo-", ms=2, alpha = 0.5)
         
-    betamodel = np.ones(len(newbeta))
-    for k in np.arange(0,0.2,0.2/10):
-        for i in range(len(newbeta)):
-            if 0.29 <= newbeta[i] <= 0.32:
-                betamodel[i]= newbeta[i]-k
+    betamodel = np.ones(len(beta))
+    for k in np.arange(0,0.2,0.02):
+        for i in range(len(beta)):
+            if 0.29 <= beta[i] <= 0.32:
+                betamodel[i]= beta[i]-k
             else:
-                betamodel[i]= newbeta[i]
-        ax2.plot(newrho/1000, betamodel, "bo-",ms=2, alpha = 0.5)
+                betamodel[i]= beta[i]
+        ax2.plot(rho/1000, betamodel, "bo-",ms=2, alpha = 0.5)
     
     plt.tight_layout()
-    df_bearings_path_info , df_ambient = bearingsLoader(pathname= "../lwpcv21")
-    df_disturb = rexpLoader(pathname= "../lwpcv21")
+    # df_bearings_path_info , df_ambient = bearingsLoader(pathname= "lwpcv21_linux")
     
-    fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True,figsize=(8,5))
-    ax1.plot(df_ambient[:,0], df_ambient[:,1], "b-")
-    ax1.plot(df_disturb[:-1,0], df_disturb[:-1,1], "r-")
-    ax1.set_ylabel("Amplitude")
-    ax2.plot(df_ambient[:,0], df_ambient[:,2], "b-")
-    ax2.plot(df_disturb[:-1,0], df_disturb[:-1,2], "r-")
-    ax2.set_xlabel("rho [km]")
-    ax2.set_ylabel("Phase")
-    plt.suptitle("Hello!", fontsize = 14, color = "r", fontweight = "bold")
-    plt.show()
+    
+    # fig, (ax1, ax2) = plt.subplots(2, 1, sharex=True,figsize=(8,5))
+    # ax1.plot(df_ambient[:,0], df_ambient[:,1], "b-")
+    # ax1.plot(df_disturb[:-1,0], df_disturb[:-1,1], "r-")
+    # ax1.set_ylabel("Amplitude")
+    # ax2.plot(df_ambient[:,0], df_ambient[:,2], "b-")
+    # ax2.plot(df_disturb[:-1,0], df_disturb[:-1,2], "r-")
+    # ax2.set_xlabel("rho [km]")
+    # ax2.set_ylabel("Phase")
+    # plt.suptitle("Hello!", fontsize = 14, color = "r", fontweight = "bold")
+    # plt.show()
     
 
 

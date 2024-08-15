@@ -1,13 +1,13 @@
 file-mds    Output/
 file-lwf    Output/
-case-id     NAA coverage of the Atlantic
+case-id     NRK coverage of the Mediterranean
 tx          bearings
-tx-data    NAA
+tx-data    NRK
 ionosphere  lwpm day
-range-max 5836.0
-bearings 72.4
+range-max 3712.0
+bearings 128.3
 print-swg 2
-lwf-vs-dist 5836.0
+lwf-vs-dist 3712.0
 print-lwf 2
 start
 quit

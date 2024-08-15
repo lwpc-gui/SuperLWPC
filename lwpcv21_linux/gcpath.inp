@@ -1,8 +1,8 @@
-case-id     OMEGA-A coverage of the N_Pac
+case-id     NRK coverage of the Mediterranean
 tx          gcpath
-tx-data    OMEGA-A
+tx-data    NRK
 ionosphere  lwpm day
-range-max 3296.0
+range-max 3712.0
 receivers    36.8 -10.22
 gcpath
 start
