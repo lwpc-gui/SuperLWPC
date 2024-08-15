@@ -8,8 +8,8 @@ A graphical user interface "SuperLWPC" is very useful to: save time, accuracy an
 
  
 ## Download executable version
-* [SuperLWPC_Win64-Bit.zip](https://drive.google.com/file/d/1oqXRu1K2zB8RZHtRHsdEj2mXLm0CokwG/view?usp=sharing) (332.3 Mo)
-* [SuperLWPC_Linux64-Bit(x86).zip](https://drive.google.com/file/d/1jiBvU9R0u28og9xa57920vfyu8Eo9K_8/view?usp=share_link) (299.2 Mo)
+* [SuperLWPC_Win64-Bit.zip](https://drive.google.com/file/d/12kZwaokQfmWxZz0SuBogbzMsUYY8Ml1q/view?usp=sharing) (332.3 Mo)
+* [SuperLWPC_Linux64-Bit(x86).zip](https://drive.google.com/file/d/1npS5gXW9963iSehRjBqeoiLx1B7-Bn1Y/view?usp=sharing) (299.2 Mo)
 
 ## User Guide
 1. Run the file **SuperLWPC.exe** (under window or **./SuperLWPC** under linux). The interface will appear with a console window for debugging mode.
